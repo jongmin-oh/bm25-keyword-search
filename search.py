@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pickle
 import pandas as pd
+import numpy as np
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -10,8 +11,12 @@ BASE_DIR = Path(__file__).resolve().parent
 with open(BASE_DIR.joinpath('bm25result'), 'rb') as bm25result_file:
     bm25result = pickle.load(bm25result_file)
 
-corpus = pd.read_pickle(BASE_DIR.joinpath(
-    'data/base_datasets.pkl'))['user'].tolist()
+df = pd.read_pickle(BASE_DIR.joinpath('data/base_datasets.pkl'))
+
+corpus = df['user'].tolist()
+system = df['system'].tolist()
+
+print(df.head())
 
 
 def bm25_search(query, n=5):
@@ -20,5 +25,13 @@ def bm25_search(query, n=5):
     return topk
 
 
+def bm25_chatbot_response(query, n=5):
+    tokenized_query = tokenizer(query)
+    scores = bm25result.get_scores(tokenized_query)
+    top_idx = np.argmax(scores)
+    res = system[top_idx]
+    return res
+
+
 if __name__ == "__main__":
-    print(bm25_search('나 오늘 여친이랑 헤어졌어 ㅠㅠ', n=5))
+    print(bm25_chatbot_response('나 오늘 여친이랑 헤어졌어 ㅠㅠ'))
